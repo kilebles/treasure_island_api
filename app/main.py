@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes import router
 
-app = FastAPI()
+app = FastAPI(title="Treasure Island API")
 
 app.add_middleware(
     CORSMiddleware,
