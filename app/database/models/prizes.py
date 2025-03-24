@@ -13,3 +13,6 @@ class Prize(Model):
 
     user_prizes: fields.ReverseRelation["UserPrizes"]
     lottery_prizes: fields.ReverseRelation["LotteryPrizes"]
+    
+    class Meta:
+        app = "app"

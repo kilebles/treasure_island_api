@@ -6,7 +6,7 @@ def init_db(app):
     register_tortoise(
         app,
         db_url=config.DATABASE_URL,
-        modules={"models": ["app.db.models"]},
+        modules={"app": ["app.database.models"]}, 
         generate_schemas=False,
         add_exception_handlers=True,
     )

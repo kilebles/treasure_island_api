@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Form, status, HTTPException
+from fastapi import APIRouter, Form
 
 from app.services.users_service import login_by_init_data
-from app.schemas.users_schema import InitDataLoginRequest, InitDataLoginResponse
+from app.schemas.users_schema import InitDataLoginResponse
 
 router = APIRouter(prefix="/users", tags=["users"])
 

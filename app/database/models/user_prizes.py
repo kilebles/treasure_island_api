@@ -4,5 +4,8 @@ from tortoise.models import Model
 
 class UserPrizes(Model):
     id = fields.BigIntField(pk=True)
-    user = fields.ForeignKeyField("models.User", related_name="prizes")
-    prize = fields.ForeignKeyField("models.Prize", related_name="user_prizes")
+    user = fields.ForeignKeyField("app.User", related_name="prizes")
+    prize = fields.ForeignKeyField("app.Prize", related_name="user_prizes")
+    
+    class Meta:
+        app = "app"

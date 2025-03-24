@@ -19,3 +19,6 @@ class Lottery(Model):
 
     tickets: fields.ReverseRelation["Ticket"]
     lottery_prizes: fields.ReverseRelation["LotteryPrizes"]
+    
+    class Meta:
+        app = "app"

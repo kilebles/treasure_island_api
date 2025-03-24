@@ -1,4 +1,4 @@
-from .user import User
+from .users import User
 from .user_profile import UserProfile
 from .lottery import Lottery
 from .ticket import Ticket

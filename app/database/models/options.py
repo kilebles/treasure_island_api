@@ -7,3 +7,6 @@ class Option(Model):
     title = fields.CharField(max_length=255)
     key = fields.CharField(max_length=64)
     value = fields.TextField()
+    
+    class Meta:
+        app = "app"

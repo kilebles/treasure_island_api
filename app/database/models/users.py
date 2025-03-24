@@ -4,7 +4,7 @@ from tortoise.models import Model
 
 class User(Model):
     id = fields.BigIntField(pk=True)
-    telegram_id = fields.BigIntField(unique=True)
+    telegram = fields.BigIntField(unique=True)
     first_name = fields.CharField(max_length=255, null=True)
     last_name = fields.CharField(max_length=255, null=True)
     username = fields.CharField(max_length=255, null=True)
@@ -15,3 +15,5 @@ class User(Model):
     tickets: fields.ReverseRelation["Ticket"]
     prizes: fields.ReverseRelation["UserPrizes"]
     
+    class Meta:
+        app = "app"
