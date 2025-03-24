@@ -32,7 +32,7 @@ async def login_by_init_data(init_data: str) -> dict:
             first_name=tg_user.first_name,
             last_name=tg_user.last_name,
             username=tg_user.username,
-            photo=tg_user.photo,
+            photo=tg_user.photo_url,
         )
 
         await UserProfile.create(user=user)
