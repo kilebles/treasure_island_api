@@ -8,6 +8,5 @@ class InitDataLoginRequest(BaseModel):
     
 
 class InitDataLoginResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    # token_type: str = "bearer"
+    access: str
+    refresh: str
