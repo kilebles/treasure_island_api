@@ -21,7 +21,6 @@ router = APIRouter(tags=["lotteries"])
 async def get_lotteries(user=Depends(get_current_user)):
     now = datetime.now(timezone.utc)
 
-    # Получаем все лотереи с датой >= сейчас
     lotteries = await Lottery.filter(event_date__gte=now).order_by("event_date")
 
     active = next((l for l in lotteries if l.is_active), None)
@@ -30,11 +29,9 @@ async def get_lotteries(user=Depends(get_current_user)):
 
     future = [l for l in lotteries if not l.is_active]
 
-    # Количество доступных и общее количество NFT
     available_nft = await get_available_nft_count(active.id)
     total_nft = await LotteryPrizes.filter(lottery=active).count()
 
-    # Активная лотерея
     active_data = IFullLotteryInfo(
         id=active.id,
         name=active.name,
@@ -50,7 +47,6 @@ async def get_lotteries(user=Depends(get_current_user)):
         winners=[],
     )
 
-    # Будущие лотереи
     future_data = [
         ILotteryInfo(
             id=l.id,
