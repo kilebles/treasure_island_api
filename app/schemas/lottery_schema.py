@@ -1,3 +1,5 @@
+from enum import Enum
+from typing import Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -85,3 +87,16 @@ class IGetNftTokensRequest(BaseModel):
     limit: int = 10
     minNumber: int | None = None
     maxNumber: int | None = None
+    
+    
+class LiveStatus(str, Enum):
+    ONLINE = "online"
+    OFFLINE = "offline"
+    
+
+class ICheckLiveResponse(BaseModel):
+    success: bool = True
+    status: LiveStatus
+    liveLink: Optional[str] = None
+    
+    model_config = ConfigDict(from_attributes=True)

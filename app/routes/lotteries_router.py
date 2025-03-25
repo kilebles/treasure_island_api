@@ -7,13 +7,15 @@ from app.database.models import Lottery
 from app.database.models.lottery_prizes import LotteryPrizes
 from app.database.models.ticket import Ticket
 from app.schemas.lottery_schema import (
+    ICheckLiveResponse,
     IFullLotteryInfo,
     IGetLotteriesResponse,
     IGetNftTokensResponse,
     ILotteryHistoryInfo,
     ILotteryInfo,
     IGetLotteriesHistoryResponse,
-    IMarketNftToken
+    IMarketNftToken,
+    LiveStatus
 )
 from app.services.lottery_service import get_available_nft_count
 
@@ -67,6 +69,13 @@ async def get_lotteries(user=Depends(get_current_user)):
         futureLotteries=future_data,
     )
 
+@router.get("/status", response_model=ICheckLiveResponse)
+async def get_live_status(user=Depends(get_current_user)):
+    #TODO hek translation logic
+    return ICheckLiveResponse(
+        status=LiveStatus.OFFLINE,
+        liveLink=None
+    )
 
 @router.get("/history", response_model=IGetLotteriesHistoryResponse)
 async def get_lottery_history(
@@ -191,3 +200,4 @@ async def get_lottery_nfts(
         totalPages=total_pages,
         nfts=nfts
     )
+    
