@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Form, HTTPException
 
 from app.auth.dependencies import get_current_user
@@ -25,6 +26,7 @@ async def buy_nft(ticket_id: int, user=Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Ticket already sold")
     
     ticket.owner = user
+    ticket.expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
     await ticket.save()
     
     #TODO Generate payment link logic
