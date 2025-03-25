@@ -1,8 +1,10 @@
-
 import pytest
+
 from datetime import datetime, timedelta, timezone
 from httpx import AsyncClient
+
 from app.database.models import User, Lottery, Prize, LotteryPrizes, UserPrizes
+from app.schemas.lottery_schema import IGetLotteriesResponse
 from app.auth.jwt import create_access_token
 
 
@@ -39,8 +41,8 @@ async def test_lotteries_excludes_past_lottery(client: AsyncClient):
     response = await client.get("/lotteries", headers={"Authorization": f"Bearer {token}"})
     data = response.json()
     assert response.status_code == 200
-    assert "Прошедший" not in [l["title"] for l in data["futureLotteries"]]
-    assert "Будущий" in [l["title"] for l in data["futureLotteries"]]
+    assert "Прошедший" not in [l["name"] for l in data["futureLotteries"]]
+    assert "Будущий" in [l["name"] for l in data["futureLotteries"]]
 
 
 @pytest.mark.asyncio
@@ -58,11 +60,12 @@ async def test_lotteries_event_dates_are_future(client: AsyncClient):
     )
 
     response = await client.get("/lotteries", headers={"Authorization": f"Bearer {token}"})
-    data = response.json()
-
     assert response.status_code == 200
-    assert isinstance(data["activeLottery"]["eventDate"], int)
-    assert data["activeLottery"]["eventDate"] >= now
+
+    parsed = IGetLotteriesResponse.model_validate(response.json())
+
+    assert isinstance(parsed.activeLottery.eventDate, int)
+    assert parsed.activeLottery.eventDate >= now
 
 
 @pytest.mark.asyncio
