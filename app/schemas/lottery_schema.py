@@ -31,3 +31,27 @@ class IGetLotteriesResponse(BaseModel):
         populate_by_name=True,
         ser_json_by_alias=True,
     )
+
+
+class IPageRequest(BaseModel):
+    page: int
+    limit: int = 10
+    q: str | None = None
+    
+    
+class ILotteryHistoryInfo(BaseModel):
+    id: int
+    title: str = Field(alias="name")
+    eventDate: int = Field(alias="event_date")
+    totalNftCount: int
+    nftCost: float = Field(alias="ticket_price")
+    
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    
+
+class IGetLotteriesHistoryResponse(BaseModel):
+    success: bool = True
+    lotteries: list[ILotteryHistoryInfo]
+    
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True, ser_json_by_alias=True)
+    

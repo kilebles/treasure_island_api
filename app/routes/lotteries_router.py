@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.auth.dependencies import get_current_user
 from app.database.models import Lottery
@@ -7,7 +7,9 @@ from app.database.models.lottery_prizes import LotteryPrizes
 from app.schemas.lottery_schema import (
     IFullLotteryInfo,
     IGetLotteriesResponse,
+    ILotteryHistoryInfo,
     ILotteryInfo,
+    IGetLotteriesHistoryResponse
 )
 from app.services.lottery_service import get_available_nft_count
 
@@ -63,3 +65,34 @@ async def get_lotteries(user=Depends(get_current_user)):
         activeLottery=active_data,
         futureLotteries=future_data,
     )
+
+
+@router.get("/lotteries/history", response_model=IGetLotteriesHistoryResponse)
+async def get_lottery_history(
+    page: int = Query(..., ge=1),
+    limit: int = Query(10, ge=1),
+    q: str | None = None,
+    user=Depends(get_current_user),
+):
+    now = datetime.now(timezone.utc)
+    offset = (page - 1) * limit
+    query = Lottery.filter(event_date__lt=now, is_active=False)
+    
+    if q:
+        query = query.filter(name__icontains=q)
+        
+    lotteries = await query.offset(offset).limit(limit)
+    result: list[ILotteryHistoryInfo] = []
+    
+    for l in lotteries:
+        total_nft_count = await LotteryPrizes.filter(lottery=l).count()
+        result.append(ILotteryHistoryInfo(
+            id=l.id,
+            name=l.name,
+            event_date=int(l.event_date.timestamp()),
+            totalNftCount=total_nft_count,
+            ticket_price=l.ticket_price,
+        ))
+        
+    return IGetLotteriesHistoryResponse(lotteries=result)
+
