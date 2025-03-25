@@ -19,6 +19,9 @@ class IFullLotteryInfo(ILotteryInfo):
     grandPrizes: list = []
     prizes: list = []
     winners: list = []
+    otherLotteries: list[ILotteryInfo] = []
+    
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 class IGetLotteriesResponse(BaseModel):

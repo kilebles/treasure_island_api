@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Path
 
 from app.auth.dependencies import get_current_user
 from app.database.models import Lottery
@@ -96,3 +96,52 @@ async def get_lottery_history(
         
     return IGetLotteriesHistoryResponse(lotteries=result)
 
+
+@router.get("/lotteries/{lottery_id}", response_model=IGetLotteriesResponse)
+async def get_lottery_by_id(
+    lottery_id: int = Path(..., ge=1),
+    user=Depends(get_current_user)
+):
+    lottery = await Lottery.get_or_none(id=lottery_id)
+    if not lottery:
+        raise HTTPException(status_code=404, detail="Lottery not found")
+    
+    available_nft = await get_available_nft_count(lottery.id)
+    total_nft = await LotteryPrizes.filter(lottery=lottery).count()
+    
+    active_data = IFullLotteryInfo(
+        id=lottery.id,
+        name=lottery.name,
+        short_description=lottery.short_description,
+        banner=lottery.banner,
+        collection_banner=lottery.collection_banner,
+        event_date=int(lottery.event_date.timestamp()),
+        totalSum=lottery.total_sum,
+        availableNftCount=available_nft,
+        totalNftCount=total_nft,
+        grandPrizes=[],
+        prizes=[],
+        winners=[],
+        otherLotteries=[],
+    )
+    
+    other_lotteries = await Lottery.exclude(id=lottery.id).order_by("-event_date").limit(5)
+    
+    future_data = [
+        ILotteryInfo(
+            id=l.id,
+            name=l.name,
+            short_description=l.short_description,
+            banner=l.banner,
+            collection_banner=l.collection_banner,
+            event_date=int(l.event_date.timestamp()),
+        )
+        for l in other_lotteries
+    ]
+    
+    active_data.otherLotteries = future_data
+    
+    return IGetLotteriesResponse(
+        activeLottery=active_data,
+        futureLotteries=[]
+    )
