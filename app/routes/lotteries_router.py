@@ -1,15 +1,19 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
+from tortoise.expressions import Q
 
 from app.auth.dependencies import get_current_user
 from app.database.models import Lottery
 from app.database.models.lottery_prizes import LotteryPrizes
+from app.database.models.ticket import Ticket
 from app.schemas.lottery_schema import (
     IFullLotteryInfo,
     IGetLotteriesResponse,
+    IGetNftTokensResponse,
     ILotteryHistoryInfo,
     ILotteryInfo,
-    IGetLotteriesHistoryResponse
+    IGetLotteriesHistoryResponse,
+    IMarketNftToken
 )
 from app.services.lottery_service import get_available_nft_count
 
@@ -144,4 +148,49 @@ async def get_lottery_by_id(
     return IGetLotteriesResponse(
         activeLottery=active_data,
         futureLotteries=[]
+    )
+    
+
+@router.get("/lotteries/nfts/{lottery_id}", response_model=IGetNftTokensResponse)
+async def get_lottery_nfts(
+    lottery_id: int,
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
+    minNumber: int | None = Query(None),
+    maxNumber: int | None = Query(None),
+    user=Depends(get_current_user)
+):
+    offset = (page - 1) * limit
+    lottery = await Lottery.get_or_none(id=lottery_id)
+    
+    if not lottery:
+        raise HTTPException(status_code=404, detail="Lottery not found")
+    
+    filters = Q(lottery_id=lottery_id)
+    if minNumber is not None:
+        filters &= Q(number__gte=minNumber)
+    if maxNumber is not None:
+        filters &= Q(number__lte=maxNumber)
+        
+    total = await Ticket.filter(filters).count()
+    total_pages = (total + limit - 1) // limit
+    tickets = await Ticket.filter(filters).offset(offset).limit(limit).all()
+    
+    nfts = [
+        IMarketNftToken(
+            id=t.id,
+            number=t.number,
+            name=t.name,
+            image=t.image,
+            address=t.address,
+            price=lottery.ticket_price,
+            buyAvailable=t.owner_id is None,
+        )
+        for t in tickets
+    ]
+    
+    return IGetNftTokensResponse(
+        page=page,
+        totalPages=total_pages,
+        nfts=nfts
     )

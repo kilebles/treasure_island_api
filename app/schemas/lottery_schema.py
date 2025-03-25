@@ -56,5 +56,32 @@ class IGetLotteriesHistoryResponse(BaseModel):
     success: bool = True
     lotteries: list[ILotteryHistoryInfo]
     
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True, ser_json_by_alias=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
     
+
+class IMarketNftToken(BaseModel):
+    id: int
+    ticketNumber: int = Field(alias="number")
+    name: str
+    image: str
+    address: str
+    price: float
+    buyAvailable: bool
+    
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    
+    
+class IGetNftTokensResponse(BaseModel):
+    success: bool = True
+    page: int
+    totalPages: int
+    nfts: list[IMarketNftToken]
+    
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    
+
+class IGetNftTokensRequest(BaseModel):
+    page: int = 1
+    limit: int = 10
+    minNumber: int | None = None
+    maxNumber: int | None = None
