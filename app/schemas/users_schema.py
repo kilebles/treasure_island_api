@@ -2,8 +2,6 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 class UserOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    
     id: int
     telegramId: int
     telegramUsername: Optional[str] = None
@@ -13,10 +11,20 @@ class UserOut(BaseModel):
     inn: Optional[int] = None
     tonAddress: Optional[str] = None
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class InitDataLoginResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    
     access: str
     refresh: str
     user: UserOut
+    
+    model_config = ConfigDict(from_attributes=True)
+    
+
+class IBuyTokenResponse(BaseModel):
+    success: bool = True
+    paymentLink: str
+    
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+

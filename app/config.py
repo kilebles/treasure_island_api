@@ -36,7 +36,7 @@ TORTOISE_ORM = {
         "default": config.DATABASE_URL,
     },
     "apps": {
-        "models": {
+        "": {
             "models": ["app.database.models", "aerich.models"],
             "default_connection": "default",
         },

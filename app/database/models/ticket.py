@@ -10,6 +10,7 @@ class Ticket(Model):
     name = fields.CharField(max_length=255)
     image = fields.CharField(max_length=255)
     address = fields.CharField(max_length=255)
+    expires_at = fields.DatetimeField(null=True)
     
     class Meta:
         app = "app"

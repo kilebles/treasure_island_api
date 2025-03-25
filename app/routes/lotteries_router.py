@@ -17,13 +17,10 @@ from app.schemas.lottery_schema import (
 )
 from app.services.lottery_service import get_available_nft_count
 
-router = APIRouter(tags=["lotteries"])
+router = APIRouter(tags=["lotteries"], prefix="/lotteries")
 
 
-@router.get(
-    "/lotteries",
-    response_model=IGetLotteriesResponse
-)
+@router.get("",response_model=IGetLotteriesResponse)
 async def get_lotteries(user=Depends(get_current_user)):
     now = datetime.now(timezone.utc)
 
@@ -71,7 +68,7 @@ async def get_lotteries(user=Depends(get_current_user)):
     )
 
 
-@router.get("/lotteries/history", response_model=IGetLotteriesHistoryResponse)
+@router.get("/history", response_model=IGetLotteriesHistoryResponse)
 async def get_lottery_history(
     page: int = Query(..., ge=1),
     limit: int = Query(10, ge=1),
@@ -101,7 +98,7 @@ async def get_lottery_history(
     return IGetLotteriesHistoryResponse(lotteries=result)
 
 
-@router.get("/lotteries/{lottery_id}", response_model=IGetLotteriesResponse)
+@router.get("/{lottery_id}", response_model=IGetLotteriesResponse)
 async def get_lottery_by_id(
     lottery_id: int = Path(..., ge=1),
     user=Depends(get_current_user)
@@ -151,7 +148,7 @@ async def get_lottery_by_id(
     )
     
 
-@router.get("/lotteries/nfts/{lottery_id}", response_model=IGetNftTokensResponse)
+@router.get("/nfts/{lottery_id}", response_model=IGetNftTokensResponse)
 async def get_lottery_nfts(
     lottery_id: int,
     page: int = Query(1, ge=1),
