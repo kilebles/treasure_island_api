@@ -1,5 +1,3 @@
-import asyncio
-
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, WebSocket, WebSocketDisconnect
 from tortoise.expressions import Q
@@ -219,7 +217,7 @@ async def lottery_winners_websocket(websocket: WebSocket, lottery_id: int):
             await websocket.close()
             return
         
-        user = await get_current_user(websocket, token)  # проверка JWT
+        user = await get_current_user(websocket, token)
         await websocket.accept()
 
         from app.database.models import UserPrizes

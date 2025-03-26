@@ -168,4 +168,4 @@ async def get_user_prizes(
         total_pages=total_pages,
         prizes=result
     )
-    
+
