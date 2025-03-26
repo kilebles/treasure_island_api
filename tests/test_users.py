@@ -3,7 +3,6 @@ import pytest
 from httpx import AsyncClient
 from app.database.models import User
 
-
 VALID_INIT_DATA = (
     "query_id=AAAA1&user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22Test%22%2C"
     "%22last_name%22%3A%22User%22%2C%22username%22%3A%22testuser%22%2C"

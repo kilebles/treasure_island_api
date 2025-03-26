@@ -1,6 +1,8 @@
 import pytest
+
 from datetime import datetime, timedelta, timezone
 from httpx import AsyncClient
+
 from app.auth.jwt import create_access_token
 from app.database.models import User, Lottery, Ticket
 

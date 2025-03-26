@@ -1,44 +1,118 @@
-from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional
+from enum import Enum
+from typing import Optional, List
+from pydantic import BaseModel, Field, ConfigDict
+
+
+def to_camel(string: str) -> str:
+    parts = string.split("_")
+    return parts[0] + ''.join(word.capitalize() for word in parts[1:])
+
 
 class UserOut(BaseModel):
     id: int
-    telegramId: int
-    telegramUsername: Optional[str] = None
-    telegramName: str
-    fullName: Optional[str] = None
-    phoneNumber: Optional[str] = None
+    telegram_id: int
+    telegram_username: Optional[str] = None
+    telegram_name: str
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
     inn: Optional[int] = None
-    tonAddress: Optional[str] = None
+    ton_address: Optional[str] = None
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
 
 
 class InitDataLoginResponse(BaseModel):
     access: str
     refresh: str
     user: UserOut
-    
-    model_config = ConfigDict(from_attributes=True)
-    
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
 
 class IBuyTokenResponse(BaseModel):
     success: bool = True
-    paymentLink: str
-    
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+    payment_link: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
 
 
 class IUpdateUserInfoRequest(BaseModel):
-    fullName: Optional[str] = Field(None, min_length=2, max_length=100)
-    phoneNumber: Optional[str] = Field(None, pattern=r"^\+?\d{10,15}$")
+    full_name: Optional[str] = Field(None, min_length=2, max_length=100)
+    phone_number: Optional[str] = Field(None, pattern=r"^\+?\d{10,15}$")
     inn: Optional[int] = Field(None, ge=1000000000, le=9999999999999)
-    
-    model_config = ConfigDict(extra="forbid")
-    
+
+    model_config = ConfigDict(
+        extra="forbid",
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
 
 class IUpdateUserInfoResponse(BaseModel):
     success: bool = True
     user: UserOut
-    
-    model_config = ConfigDict(from_attributes=True)
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
+class IMyNftToken(BaseModel):
+    id: int
+    ticket_number: int
+    name: str
+    image: str
+    address: str
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
+class ILotteryShortInfo(BaseModel):
+    id: int
+    name: str
+    event_date: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
+class IUserTokens(BaseModel):
+    lottery: ILotteryShortInfo
+    nfts: List[IMyNftToken]
+
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
+class IGetMyNftTokensResponse(BaseModel):
+    success: bool = True
+    tokens: List[IUserTokens]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )

@@ -1,4 +1,5 @@
 import pytest
+
 from datetime import datetime, timedelta, timezone
 from httpx import AsyncClient
 
@@ -14,9 +15,14 @@ async def test_lottery_nfts_returns_correct_count(client: AsyncClient):
 
     lottery = await Lottery.create(
         name="NFT Розыгрыш",
-        banner="b", short_description="s", total_sum=1000,
-        event_date=now + timedelta(days=1), is_active=True,
-        collection_name="col", collection_address="addr", collection_banner="cb",
+        banner="b",
+        short_description="s",
+        total_sum=1000,
+        event_date=now + timedelta(days=1),
+        is_active=True,
+        collection_name="col",
+        collection_address="addr",
+        collection_banner="cb",
         ticket_price=12.5
     )
 
@@ -39,4 +45,19 @@ async def test_lottery_nfts_returns_correct_count(client: AsyncClient):
     assert response.status_code == 200
     data = response.json()
 
+    assert data["success"] is True
+    assert data["page"] == 1
+    assert data["totalPages"] == 1
     assert len(data["nfts"]) == nft_count
+
+    for nft in data["nfts"]:
+        assert "id" in nft
+        assert "ticketNumber" in nft
+        assert "name" in nft
+        assert "image" in nft
+        assert "address" in nft
+        assert "price" in nft
+        assert "buyAvailable" in nft
+
+        assert isinstance(nft["ticketNumber"], int)
+        assert nft["address"].startswith("TON")

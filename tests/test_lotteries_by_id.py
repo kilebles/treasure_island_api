@@ -33,9 +33,13 @@ async def test_get_lottery_by_id_returns_correct_data(client: AsyncClient):
 
     response = await client.get(f"/lotteries/{main_lottery.id}", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
-    parsed = IGetLotteriesResponse.model_validate(response.json())
-    assert parsed.activeLottery.title == "Текущий"
 
-    assert len(parsed.activeLottery.otherLotteries) == 3
-    for other in parsed.activeLottery.otherLotteries:
-        assert other.title.startswith("Другой")
+    parsed = IGetLotteriesResponse.model_validate(response.json())
+
+    assert parsed.active_lottery.name == "Текущий"
+    assert parsed.active_lottery.banner == "main_banner"
+    assert parsed.active_lottery.collection_banner == "main_col_banner"
+
+    assert len(parsed.active_lottery.other_lotteries) == 3
+    for other in parsed.active_lottery.other_lotteries:
+        assert other.name.startswith("Другой")

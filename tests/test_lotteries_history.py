@@ -43,9 +43,8 @@ async def test_lottery_history_returns_only_past_lotteries(client: AsyncClient):
 
     assert response.status_code == 200
     assert data["success"] is True
-
     assert len(data["lotteries"]) == 3
 
     now_ts = int(now.timestamp())
     for lottery in data["lotteries"]:
-        assert lottery["event_date"] < now_ts
+        assert lottery["eventDate"] < now_ts

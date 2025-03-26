@@ -22,7 +22,7 @@ from app.services.lottery_service import get_available_nft_count
 router = APIRouter(tags=["lotteries"], prefix="/lotteries")
 
 
-@router.get("",response_model=IGetLotteriesResponse)
+@router.get("", response_model=IGetLotteriesResponse)
 async def get_lotteries(user=Depends(get_current_user)):
     now = datetime.now(timezone.utc)
 
@@ -44,10 +44,10 @@ async def get_lotteries(user=Depends(get_current_user)):
         banner=active.banner,
         collection_banner=active.collection_banner,
         event_date=int(active.event_date.timestamp()),
-        totalSum=active.total_sum,
-        availableNftCount=available_nft,
-        totalNftCount=total_nft,
-        grandPrizes=[],
+        total_sum=active.total_sum,
+        available_nft_count=available_nft,
+        total_nft_count=total_nft,
+        grand_prizes=[],
         prizes=[],
         winners=[],
     )
@@ -65,17 +65,18 @@ async def get_lotteries(user=Depends(get_current_user)):
     ]
 
     return IGetLotteriesResponse(
-        activeLottery=active_data,
-        futureLotteries=future_data,
+        active_lottery=active_data,
+        future_lotteries=future_data,
     )
+
 
 @router.get("/status", response_model=ICheckLiveResponse)
 async def get_live_status(user=Depends(get_current_user)):
-    #TODO hek translation logic
     return ICheckLiveResponse(
         status=LiveStatus.OFFLINE,
-        liveLink=None
+        live_link=None
     )
+
 
 @router.get("/history", response_model=IGetLotteriesHistoryResponse)
 async def get_lottery_history(
@@ -87,23 +88,23 @@ async def get_lottery_history(
     now = datetime.now(timezone.utc)
     offset = (page - 1) * limit
     query = Lottery.filter(event_date__lt=now, is_active=False)
-    
+
     if q:
         query = query.filter(name__icontains=q)
-        
+
     lotteries = await query.offset(offset).limit(limit)
     result: list[ILotteryHistoryInfo] = []
-    
+
     for l in lotteries:
         total_nft_count = await LotteryPrizes.filter(lottery=l).count()
         result.append(ILotteryHistoryInfo(
             id=l.id,
             name=l.name,
             event_date=int(l.event_date.timestamp()),
-            totalNftCount=total_nft_count,
+            total_nft_count=total_nft_count,
             ticket_price=l.ticket_price,
         ))
-        
+
     return IGetLotteriesHistoryResponse(lotteries=result)
 
 
@@ -115,10 +116,10 @@ async def get_lottery_by_id(
     lottery = await Lottery.get_or_none(id=lottery_id)
     if not lottery:
         raise HTTPException(status_code=404, detail="Lottery not found")
-    
+
     available_nft = await get_available_nft_count(lottery.id)
     total_nft = await LotteryPrizes.filter(lottery=lottery).count()
-    
+
     active_data = IFullLotteryInfo(
         id=lottery.id,
         name=lottery.name,
@@ -126,17 +127,17 @@ async def get_lottery_by_id(
         banner=lottery.banner,
         collection_banner=lottery.collection_banner,
         event_date=int(lottery.event_date.timestamp()),
-        totalSum=lottery.total_sum,
-        availableNftCount=available_nft,
-        totalNftCount=total_nft,
-        grandPrizes=[],
+        total_sum=lottery.total_sum,
+        available_nft_count=available_nft,
+        total_nft_count=total_nft,
+        grand_prizes=[],
         prizes=[],
         winners=[],
-        otherLotteries=[],
+        other_lotteries=[],
     )
-    
+
     other_lotteries = await Lottery.exclude(id=lottery.id).order_by("-event_date").limit(5)
-    
+
     future_data = [
         ILotteryInfo(
             id=l.id,
@@ -148,56 +149,55 @@ async def get_lottery_by_id(
         )
         for l in other_lotteries
     ]
-    
-    active_data.otherLotteries = future_data
-    
+
+    active_data.other_lotteries = future_data
+
     return IGetLotteriesResponse(
-        activeLottery=active_data,
-        futureLotteries=[]
+        active_lottery=active_data,
+        future_lotteries=[]
     )
-    
+
 
 @router.get("/nfts/{lottery_id}", response_model=IGetNftTokensResponse)
 async def get_lottery_nfts(
     lottery_id: int,
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1),
-    minNumber: int | None = Query(None),
-    maxNumber: int | None = Query(None),
+    min_number: int | None = Query(None),
+    max_number: int | None = Query(None),
     user=Depends(get_current_user)
 ):
     offset = (page - 1) * limit
     lottery = await Lottery.get_or_none(id=lottery_id)
-    
+
     if not lottery:
         raise HTTPException(status_code=404, detail="Lottery not found")
-    
+
     filters = Q(lottery_id=lottery_id)
-    if minNumber is not None:
-        filters &= Q(number__gte=minNumber)
-    if maxNumber is not None:
-        filters &= Q(number__lte=maxNumber)
-        
+    if min_number is not None:
+        filters &= Q(number__gte=min_number)
+    if max_number is not None:
+        filters &= Q(number__lte=max_number)
+
     total = await Ticket.filter(filters).count()
     total_pages = (total + limit - 1) // limit
     tickets = await Ticket.filter(filters).offset(offset).limit(limit).all()
-    
+
     nfts = [
         IMarketNftToken(
             id=t.id,
-            number=t.number,
+            ticket_number=t.number,
             name=t.name,
             image=t.image,
             address=t.address,
             price=lottery.ticket_price,
-            buyAvailable=t.owner_id is None,
+            buy_available=t.owner_id is None,
         )
         for t in tickets
     ]
-    
+
     return IGetNftTokensResponse(
         page=page,
-        totalPages=total_pages,
+        total_pages=total_pages,
         nfts=nfts
     )
-    

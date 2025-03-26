@@ -3,9 +3,9 @@ import pytest
 from datetime import datetime, timedelta, timezone
 from httpx import AsyncClient
 
+from app.auth.jwt import create_access_token
 from app.database.models import User, Lottery, Prize, LotteryPrizes, UserPrizes
 from app.schemas.lottery_schema import IGetLotteriesResponse
-from app.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -39,17 +39,20 @@ async def test_lotteries_excludes_past_lottery(client: AsyncClient):
     )
 
     response = await client.get("/lotteries", headers={"Authorization": f"Bearer {token}"})
-    data = response.json()
     assert response.status_code == 200
-    assert "Прошедший" not in [l["name"] for l in data["futureLotteries"]]
-    assert "Будущий" in [l["name"] for l in data["futureLotteries"]]
+
+    data = response.json()
+    future_names = [l["name"] for l in data["futureLotteries"]]
+
+    assert "Прошедший" not in future_names
+    assert "Будущий" in future_names
 
 
 @pytest.mark.asyncio
 async def test_lotteries_event_dates_are_future(client: AsyncClient):
     user = await User.create(telegram=222, first_name="FutureGuy")
     token = create_access_token({"sub": str(user.id)})
-    now = int(datetime.now(timezone.utc).timestamp())
+    now_ts = int(datetime.now(timezone.utc).timestamp())
 
     await Lottery.create(
         name="Будущий2",
@@ -64,8 +67,8 @@ async def test_lotteries_event_dates_are_future(client: AsyncClient):
 
     parsed = IGetLotteriesResponse.model_validate(response.json())
 
-    assert isinstance(parsed.activeLottery.eventDate, int)
-    assert parsed.activeLottery.eventDate >= now
+    assert isinstance(parsed.active_lottery.event_date, int)
+    assert parsed.active_lottery.event_date >= now_ts
 
 
 @pytest.mark.asyncio
@@ -87,12 +90,11 @@ async def test_lotteries_available_nft_count(client: AsyncClient):
 
     await LotteryPrizes.create(lottery=current, prize=p1)
     await LotteryPrizes.create(lottery=current, prize=p2)
-
     await UserPrizes.create(user=user, prize=p1)
 
     response = await client.get("/lotteries", headers={"Authorization": f"Bearer {token}"})
-    data = response.json()
-
     assert response.status_code == 200
+
+    data = response.json()
     assert data["activeLottery"]["availableNftCount"] == 1
     assert data["activeLottery"]["totalNftCount"] == 2

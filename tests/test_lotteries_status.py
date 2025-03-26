@@ -1,9 +1,10 @@
 import pytest
 
 from httpx import AsyncClient
+
 from app.database.models import User
-from app.auth.jwt import create_access_token
 from app.database.models.user_profile import UserProfile
+from app.auth.jwt import create_access_token
 
 
 @pytest.mark.asyncio
@@ -18,9 +19,8 @@ async def test_check_live_status_response(client: AsyncClient):
         headers={"Authorization": f"Bearer {token}"}
     )
 
-    print("RESPONSE JSON:", response.json())
-
     assert response.status_code == 200
     data = response.json()
+
     assert data["status"] == "offline"
     assert data["liveLink"] is None

@@ -13,4 +13,8 @@ async def test_can_create_and_fetch_user():
     )
 
     fetched_user = await User.get(telegram=987654321)
+
+    assert fetched_user is not None
     assert fetched_user.username == "testconnect"
+    assert fetched_user.first_name == "Check"
+    assert fetched_user.photo == "https://t.me/photo.jpg"
