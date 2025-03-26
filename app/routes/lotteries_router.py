@@ -1,11 +1,14 @@
+import asyncio
+
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query, Path
+from fastapi import APIRouter, Depends, HTTPException, Query, Path, WebSocket, WebSocketDisconnect
 from tortoise.expressions import Q
 
 from app.auth.dependencies import get_current_user
 from app.database.models import Lottery
 from app.database.models.lottery_prizes import LotteryPrizes
 from app.database.models.ticket import Ticket
+from app.database.models.user_prizes import UserPrizes
 from app.schemas.lottery_schema import (
     ICheckLiveResponse,
     IFullLotteryInfo,
@@ -15,7 +18,9 @@ from app.schemas.lottery_schema import (
     ILotteryInfo,
     IGetLotteriesHistoryResponse,
     IMarketNftToken,
-    LiveStatus
+    LiveStatus,
+    WinnerItem,
+    WinnerUpdate
 )
 from app.services.lottery_service import get_available_nft_count
 
@@ -72,6 +77,7 @@ async def get_lotteries(user=Depends(get_current_user)):
 
 @router.get("/status", response_model=ICheckLiveResponse)
 async def get_live_status(user=Depends(get_current_user)):
+    # TODO Check status logic
     return ICheckLiveResponse(
         status=LiveStatus.OFFLINE,
         live_link=None
@@ -201,3 +207,39 @@ async def get_lottery_nfts(
         total_pages=total_pages,
         nfts=nfts
     )
+    
+
+#! Websocket router
+@router.websocket("/lotteries/winners/{lottery_id}")
+async def lottery_winners_websocket(websocket: WebSocket, lottery_id: int):
+    try:
+        token = websocket.query_params.get("token")
+        if not token:
+            print("Нет токена в query params")
+            await websocket.close()
+            return
+        
+        user = await get_current_user(websocket, token)  # проверка JWT
+        await websocket.accept()
+
+        from app.database.models import UserPrizes
+        user_prizes = (
+            await UserPrizes
+            .filter(prize__lotteryprizes__lottery_id=lottery_id)
+            .select_related("user")
+            .select_related("prize")
+        )
+
+        winners = []
+        for up in user_prizes:
+            winners.append({
+                "prize_id": up.prize.id,
+                "title": up.prize.title,
+                "user_id": up.user.id,
+            })
+
+        await websocket.send_json({"type": "winner_update", "winners": winners})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        await websocket.close()

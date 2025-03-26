@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Optional, List
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -110,6 +109,33 @@ class IUserTokens(BaseModel):
 class IGetMyNftTokensResponse(BaseModel):
     success: bool = True
     tokens: List[IUserTokens]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
+class IPrizeItem(BaseModel):
+    id: int
+    title: str
+    description: str
+    image: str
+    event_date: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
+class IGetMyPrizesResponse(BaseModel):
+    success: bool = True
+    page: int
+    total_pages: int
+    prizes: List[IPrizeItem]
 
     model_config = ConfigDict(
         from_attributes=True,

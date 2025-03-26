@@ -2,12 +2,16 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Body, Depends, Form, HTTPException, Query
 
 from app.auth.dependencies import get_current_user
+from app.database.models.lottery_prizes import LotteryPrizes
 from app.database.models.ticket import Ticket
+from app.database.models.user_prizes import UserPrizes
 from app.database.models.users import User
 from app.schemas.users_schema import (
     IBuyTokenResponse,
     IGetMyNftTokensResponse,
+    IGetMyPrizesResponse,
     IMyNftToken,
+    IPrizeItem,
     IUpdateUserInfoRequest,
     IUpdateUserInfoResponse,
     IUserTokens,
@@ -125,3 +129,43 @@ async def get_my_nfts(
     return IGetMyNftTokensResponse(
         tokens=result
     )
+
+
+@router.get("/prizes", response_model=IGetMyPrizesResponse)
+async def get_user_prizes(
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1),
+    user=Depends(get_current_user)
+):
+    offset = (page - 1) * limit
+    user_prizes = await UserPrizes.filter(user=user).select_related("prize").offset(offset).limit(limit)
+
+    prize_ids = [up.prize_id for up in user_prizes]
+    lottery_prizes = await LotteryPrizes.filter(prize_id__in=prize_ids).select_related("lottery")
+
+    prize_to_date = {
+        lp.prize_id: int(lp.lottery.event_date.timestamp())
+        for lp in lottery_prizes if lp.lottery
+    }
+
+    result = []
+    for up in user_prizes:
+        p = up.prize
+        event_date = prize_to_date.get(p.id, 0)
+        result.append(IPrizeItem(
+            id=p.id,
+            title=p.title,
+            description=p.description,
+            image=p.image,
+            event_date=event_date
+        ))
+
+    total = await UserPrizes.filter(user=user).count()
+    total_pages = (total + limit - 1) // limit
+
+    return IGetMyPrizesResponse(
+        page=page,
+        total_pages=total_pages,
+        prizes=result
+    )
+    

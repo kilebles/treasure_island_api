@@ -1,6 +1,7 @@
 from enum import Enum
-from typing import Optional
-from pydantic import BaseModel, Field, ConfigDict
+
+from typing import List, Optional
+from pydantic import BaseModel, ConfigDict
 
 
 def to_camel(string: str) -> str:
@@ -133,3 +134,15 @@ class ICheckLiveResponse(BaseModel):
         alias_generator=to_camel,
         populate_by_name=True
     )
+
+
+class WinnerItem(BaseModel):
+    prize_id: int
+    title: str
+    user_id: int
+    
+
+class WinnerUpdate(BaseModel):
+    type: str = "winner_update"
+    winners: List[WinnerItem]
+    
