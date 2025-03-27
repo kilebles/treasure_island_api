@@ -16,9 +16,7 @@ from app.schemas.lottery_schema import (
     ILotteryInfo,
     IGetLotteriesHistoryResponse,
     IMarketNftToken,
-    LiveStatus,
-    WinnerItem,
-    WinnerUpdate
+    LiveStatus
 )
 from app.services.lottery_service import get_available_nft_count
 

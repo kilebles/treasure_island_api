@@ -1,7 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.schemas.lottery_schema import ILotteryInfo, LiveStatus
+from app.schemas.lottery_schema import IFullLotteryInfo, ILotteryInfo, LiveStatus
 from app.schemas.users_schema import (
     ILotteryShortInfo,
     IMyNftToken,
@@ -156,5 +156,44 @@ class IGetLotteryListResponse(IStatusResponse):
         populate_by_name=True,
         from_attributes=True
     )
+   
+
+class IGetLotteryResponse(BaseModel):
+    success: bool = True
+    lottery: IFullLotteryInfo
+
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
+class IUpdateLotteryRequest(BaseModel):
+    name: str
+    short_description: str
+    banner: str
+    collection_banner: str
+    event_date: int
+    total_sum: int
+    ticket_price: float
+    collection_name: str
+    collection_address: str
+    main_banner: str
+    header_banner: str
+    grand_prizes: List[int]
+    prizes: List[int]
+
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
+class IUpdateLotteryResponse(IStatusResponse):
+    lottery: IFullLotteryInfo
+    
+
+class IDeleteLotteryResponse(IStatusResponse):
+    pass
 
 
