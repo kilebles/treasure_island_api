@@ -24,6 +24,18 @@ class UserOut(BaseModel):
     )
 
 
+class IShortUser(BaseModel):
+    photo: Optional[str] = None
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
+
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        from_attributes=True
+    )
+
+
 class InitDataLoginResponse(BaseModel):
     access: str
     refresh: str
@@ -142,3 +154,4 @@ class IGetMyPrizesResponse(BaseModel):
         alias_generator=to_camel,
         populate_by_name=True
     )
+
