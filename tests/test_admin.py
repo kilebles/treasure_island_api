@@ -19,14 +19,11 @@ async def test_admin_login_success(client: AsyncClient):
     assert response.status_code == 200
     data = response.json()
 
-    assert "access" in data
-    assert "refresh" in data
-    assert "user" in data
-
-    user_data = data["user"]
-    assert user_data["telegramId"] == 123456789
-    assert user_data["telegramUsername"] == "adminuser"
-    assert user_data["telegramName"] == "Admin"
+    assert data["success"] is True
+    assert "accessToken" in data
+    assert "refreshToken" in data
 
     user = await User.get_or_none(telegram=123456789)
     assert user is not None
+    assert user.username == "adminuser"
+    assert user.first_name == "Admin"
