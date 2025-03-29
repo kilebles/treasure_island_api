@@ -386,4 +386,3 @@ async def delete_lottery(lottery_id: int, _: User = Depends(get_current_user)):
     await lottery.delete()
     return IDeleteLotteryResponse(success=True)
 
-

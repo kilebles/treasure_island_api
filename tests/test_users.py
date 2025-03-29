@@ -1,13 +1,10 @@
+import time
 import pytest
 
 from httpx import AsyncClient
 from app.database.models import User
 
-VALID_INIT_DATA = (
-    "query_id=AAAA1&user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22Test%22%2C"
-    "%22last_name%22%3A%22User%22%2C%22username%22%3A%22testuser%22%2C"
-    "%22photo_url%22%3A%22https%3A%2F%2Ft.me%2Fphoto.jpg%22%7D&auth_date=1700000000&hash=securehash"
-)
+VALID_INIT_DATA = f"query_id=AAAA1&user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22Test%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22testuser%22%2C%22photo_url%22%3A%22https%3A%2F%2Ft.me%2Fphoto.jpg%22%7D&auth_date={int(time.time())}&hash=securehash"
 
 
 @pytest.mark.asyncio
