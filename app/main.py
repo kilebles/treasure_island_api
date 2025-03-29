@@ -14,5 +14,4 @@ app.add_middleware(
 )
 
 init_db(app)
-
 app.include_router(router)

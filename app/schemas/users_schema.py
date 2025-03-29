@@ -155,3 +155,21 @@ class IGetMyPrizesResponse(BaseModel):
         populate_by_name=True
     )
 
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+    
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+    
+
+class RefreshTokenResponse(BaseModel):
+    access: str
+    refresh: str
+
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
