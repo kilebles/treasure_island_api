@@ -1,4 +1,6 @@
 from datetime import datetime, timezone
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, WebSocket, WebSocketDisconnect
 from tortoise.expressions import Q
 
@@ -92,9 +94,9 @@ async def get_live_status(user=Depends(get_current_user)):
 
 @router.get("/history", response_model=IGetLotteriesHistoryResponse)
 async def get_lottery_history(
-    page: int = Query(..., ge=1),
+    page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1),
-    q: str | None = None,
+    q: Optional[str] = None,
     user=Depends(get_current_user),
 ):
     now = datetime.now(timezone.utc)
