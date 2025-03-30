@@ -8,7 +8,6 @@ class Prize(Model):
     type = fields.CharField(max_length=255)
     description = fields.TextField()
     quantity = fields.IntField()
-    winners = fields.BigIntField(null=True)
     image = fields.CharField(max_length=255)
 
     user_prizes: fields.ReverseRelation["UserPrizes"]

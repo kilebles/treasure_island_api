@@ -6,7 +6,6 @@ from app.auth.dependencies import get_current_user
 from app.database.models import Lottery
 from app.database.models.lottery_prizes import LotteryPrizes
 from app.database.models.ticket import Ticket
-from app.database.models.user_prizes import UserPrizes
 from app.schemas.lottery_schema import (
     ICheckLiveResponse,
     IFullLotteryInfo,
@@ -16,7 +15,7 @@ from app.schemas.lottery_schema import (
     ILotteryInfo,
     IGetLotteriesHistoryResponse,
     IMarketNftToken,
-    LiveStatus
+    LiveStatus, IPrize
 )
 from app.services.lottery_service import get_available_nft_count
 
@@ -38,6 +37,17 @@ async def get_lotteries(user=Depends(get_current_user)):
     available_nft = await get_available_nft_count(active.id)
     total_nft = await LotteryPrizes.filter(lottery=active).count()
 
+    grand_prizes = []
+    prizes = []
+
+    lottery_prizes = await LotteryPrizes.filter(lottery=active).select_related("prize")
+
+    for lp in lottery_prizes:
+        if lp.prize.type == 'grand':
+            grand_prizes.append(lp)
+        else:
+            prizes.append(lp)
+
     active_data = IFullLotteryInfo(
         id=active.id,
         name=active.name,
@@ -48,8 +58,8 @@ async def get_lotteries(user=Depends(get_current_user)):
         total_sum=active.total_sum,
         available_nft_count=available_nft,
         total_nft_count=total_nft,
-        grand_prizes=[],
-        prizes=[],
+        grand_prizes=[IPrize(title=lp.prize.title, image=lp.prize.image, description=lp.prize.description, quantity=lp.prize.quantity, winners=[]) for lp in grand_prizes],
+        prizes=[IPrize(title=lp.prize.title, image=lp.prize.image, description=lp.prize.description, quantity=lp.prize.quantity, winners=[]) for lp in prizes],
         winners=[],
     )
 
@@ -122,6 +132,17 @@ async def get_lottery_by_id(
     available_nft = await get_available_nft_count(lottery.id)
     total_nft = await LotteryPrizes.filter(lottery=lottery).count()
 
+    grand_prizes = []
+    prizes = []
+
+    lottery_prizes = await LotteryPrizes.filter(lottery=lottery).select_related("prize")
+
+    for lp in lottery_prizes:
+        if lp.prize.type == 'grand':
+            grand_prizes.append(lp)
+        else:
+            prizes.append(lp)
+
     active_data = IFullLotteryInfo(
         id=lottery.id,
         name=lottery.name,
@@ -132,8 +153,8 @@ async def get_lottery_by_id(
         total_sum=lottery.total_sum,
         available_nft_count=available_nft,
         total_nft_count=total_nft,
-        grand_prizes=[],
-        prizes=[],
+        grand_prizes=[IPrize(title=lp.prize.title, image=lp.prize.image, description=lp.prize.description, quantity=lp.prize.quantity, winners=[]) for lp in grand_prizes],
+        prizes=[IPrize(title=lp.prize.title, image=lp.prize.image, description=lp.prize.description, quantity=lp.prize.quantity, winners=[]) for lp in prizes],
         winners=[],
         other_lotteries=[],
     )

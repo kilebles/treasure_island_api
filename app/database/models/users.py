@@ -17,3 +17,11 @@ class User(Model):
     
     class Meta:
         app = "app"
+
+    @property
+    def full_name(self):
+        full_name = self.first_name
+        if self.last_name:
+            full_name += " " + self.last_name
+
+        return full_name

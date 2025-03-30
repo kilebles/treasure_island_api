@@ -3,6 +3,8 @@ from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.users_schema import IShortUser
+
 
 def to_camel(string: str) -> str:
     parts = string.split("_")
@@ -24,13 +26,27 @@ class ILotteryInfo(BaseModel):
     )
 
 
+class IPrize(BaseModel):
+    title: str
+    image: str
+    description: str
+    quantity: int
+    winners: List[IShortUser]
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
 class IFullLotteryInfo(ILotteryInfo):
     total_sum: int
     available_nft_count: int
     total_nft_count: int
-    grand_prizes: list = []
-    prizes: list = []
-    winners: list = []
+    grand_prizes: list[IPrize] = []
+    prizes: list[IPrize] = []
+    winners: list[IShortUser] = []
     other_lotteries: list[ILotteryInfo] = []
 
     model_config = ConfigDict(

@@ -1,13 +1,13 @@
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.schemas.lottery_schema import IFullLotteryInfo, ILotteryInfo, LiveStatus
+from app.schemas.lottery_schema import IFullLotteryInfo, ILotteryInfo, LiveStatus, IPrize
 from app.schemas.users_schema import (
     ILotteryShortInfo,
     IMyNftToken,
     IPrizeItem,
     IShortUser,
-    UserOut
+    UserOut, IAdminShortUser
 )
 
 
@@ -99,7 +99,7 @@ class IGetUserListResponse(BaseModel):
     success: bool = True
     page: int
     total_pages: int
-    users: List[IShortUser]
+    users: List[IAdminShortUser]
 
     model_config = ConfigDict(
         alias_generator=to_camel,
@@ -180,8 +180,8 @@ class IUpdateLotteryRequest(BaseModel):
     collection_address: str
     main_banner: str
     header_banner: str
-    grand_prizes: List[int]
-    prizes: List[int]
+    grand_prizes: List[IPrize]
+    prizes: List[IPrize]
 
     model_config = ConfigDict(
         alias_generator=to_camel,

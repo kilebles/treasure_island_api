@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query
 from httpx import request
 
 from app.auth.dependencies import get_current_user
+from app.database.models import Prize
 from app.database.models.lottery import Lottery
 from app.database.models.lottery_prizes import LotteryPrizes
 from app.database.models.ticket import Ticket
@@ -11,26 +12,28 @@ from app.database.models.user_prizes import UserPrizes
 from app.database.models.user_profile import UserProfile
 from app.database.models.users import User
 from app.schemas.admin_schema import (
-    IChangeStatusLiveRequest, 
+    IChangeStatusLiveRequest,
     IChangeStatusLiveResponse,
     IDeleteLotteryResponse,
     IDeleteUserResponse,
     IGetLotteryListResponse,
-    IGetLotteryResponse, 
-    IGetShortLotteriesResponse, 
+    IGetLotteryResponse,
+    IGetShortLotteriesResponse,
     IGetUserListResponse,
-    IGetUserResponse, 
-    ILoginResponse, 
-    ISetActiveLotteryResponse, 
+    IGetUserResponse,
+    ILoginResponse,
+    ISetActiveLotteryResponse,
     IStatResponse,
     IUpdateLotteryRequest,
     IUpdateLotteryResponse,
     IUpdateUserRequest,
     IUpdateUserResponse
 )
-from app.schemas.lottery_schema import IFullLotteryInfo, IGetLotteriesHistoryResponse, ILotteryHistoryInfo, ILotteryInfo, IPageRequest, LiveStatus
-from app.schemas.users_schema import ILotteryShortInfo, IMyNftToken, IPrizeItem, IShortUser, UserOut
+from app.schemas.lottery_schema import IFullLotteryInfo, IGetLotteriesHistoryResponse, ILotteryHistoryInfo, \
+    ILotteryInfo, IPageRequest, LiveStatus
+from app.schemas.users_schema import ILotteryShortInfo, IMyNftToken, IPrizeItem, IShortUser, UserOut, IAdminShortUser
 from app.services.admin_service import get_admin_statistics
+from app.services.lottery_service import get_available_nft_count
 from app.services.users_service import login_by_init_data
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -54,7 +57,7 @@ async def admin_login(init_data: str = Form(...)):
             access_token="",
             refresh_token=""
         )
-    
+
 
 @router.get("/stat", response_model=IStatResponse)
 async def get_admin_stat(user=Depends(get_current_user)):
@@ -65,7 +68,7 @@ async def get_admin_stat(user=Depends(get_current_user)):
 async def get_short_lotteries(user=Depends(get_current_user)):
     now = datetime.now(timezone.utc)
     lotteries = await Lottery.filter(event_date__gte=now).order_by("event_date")
-    
+
     result = [
         ILotteryShortInfo(
             id=l.id,
@@ -80,8 +83,8 @@ async def get_short_lotteries(user=Depends(get_current_user)):
 
 @router.put("/lotteries/setActive/{lottery_id}", response_model=ISetActiveLotteryResponse)
 async def set_active_lottery(
-    lottery_id: int = Path(..., ge=1),
-    user=Depends(get_current_user)
+        lottery_id: int = Path(..., ge=1),
+        user=Depends(get_current_user)
 ):
     lottery = await Lottery.get_or_none(id=lottery_id)
     if not lottery:
@@ -105,18 +108,18 @@ async def change_live_status(req: IChangeStatusLiveRequest, user=Depends(get_cur
     active = await Lottery.get_or_none(is_active=True)
     if not active:
         raise HTTPException(status_code=404, detail="Active lottery not found")
-    
+
     if req.live_link:
         # TODO: Link transfer logic
         return IChangeStatusLiveResponse(live_status=LiveStatus.ONLINE)
-    
+
     return IChangeStatusLiveResponse(live_status=LiveStatus.OFFLINE)
 
 
 @router.get("/users/", response_model=IGetUserListResponse)
 async def get_users(
-    request: IPageRequest = Depends(),
-    user=Depends(get_current_user)
+        request: IPageRequest = Depends(),
+        user=Depends(get_current_user)
 ):
     query = UserProfile.all()
 
@@ -127,12 +130,16 @@ async def get_users(
     total_pages = (total + request.limit - 1) // request.limit
 
     profiles = await query.prefetch_related("user") \
-                          .offset((request.page - 1) * request.limit) \
-                          .limit(request.limit)
+        .offset((request.page - 1) * request.limit) \
+        .limit(request.limit)
 
     users = [
-        IShortUser(
-            photo=p.user.photo if p.user else None,
+        IAdminShortUser(
+            id=p.user.id,
+            telegram_id=p.user.telegram,
+            telegram_username=p.user.username,
+            telegram_name=p.user.full_name,
+            photo=p.user.photo,
             full_name=p.full_name,
             phone_number=p.phone_number
         )
@@ -205,9 +212,9 @@ async def delete_user(user_id: int, _: User = Depends(get_current_user)):
 
 @router.put("/users/{user_id}", response_model=IUpdateUserResponse)
 async def update_user(
-    user_id: int,
-    body: IUpdateUserRequest,
-    _: User = Depends(get_current_user)
+        user_id: int,
+        body: IUpdateUserRequest,
+        _: User = Depends(get_current_user)
 ):
     user = await User.get_or_none(id=user_id).prefetch_related("profile")
     if not user or not user.profile:
@@ -235,11 +242,10 @@ async def update_user(
     )
 
 
-
 @router.get("/lotteries/", response_model=IGetLotteryListResponse)
 async def get_lottery_list(
-    req: IPageRequest = Depends(),
-    user: User = Depends(get_current_user)
+        req: IPageRequest = Depends(),
+        user: User = Depends(get_current_user)
 ):
     query = Lottery.all().order_by("-event_date")
 
@@ -249,15 +255,15 @@ async def get_lottery_list(
     lotteries = await query.offset((req.page - 1) * req.limit).limit(req.limit)
 
     lottery_items = [
-    ILotteryInfo(
-        id=l.id,
-        name=l.name,
-        short_description=l.short_description,
-        banner=l.banner,
-        collection_banner=l.collection_banner,
-        event_date=int(l.event_date.timestamp())
-    )
-    for l in lotteries
+        ILotteryInfo(
+            id=l.id,
+            name=l.name,
+            short_description=l.short_description,
+            banner=l.banner,
+            collection_banner=l.collection_banner,
+            event_date=int(l.event_date.timestamp())
+        )
+        for l in lotteries
     ]
 
     return IGetLotteryListResponse(
@@ -269,10 +275,10 @@ async def get_lottery_list(
 
 @router.get("/lotteries/history", response_model=IGetLotteryListResponse)
 async def get_lottery_history(
-    page: int = Query(1, ge=1),
-    limit: int = Query(10, ge=1),
-    q: str | None = Query(None),
-    user: User = Depends(get_current_user)
+        page: int = Query(1, ge=1),
+        limit: int = Query(10, ge=1),
+        q: str | None = Query(None),
+        user: User = Depends(get_current_user)
 ):
     now = datetime.now(timezone.utc)
     query = Lottery.filter(event_date__lt=now).order_by("-event_date")
@@ -306,12 +312,26 @@ async def get_lottery_history(
 
 @router.get("/lotteries/{lottery_id}", response_model=IGetLotteryResponse)
 async def get_lottery_by_id(
-    lottery_id: int,
-    _: User = Depends(get_current_user)
+        lottery_id: int,
+        _: User = Depends(get_current_user)
 ):
     lottery = await Lottery.get_or_none(id=lottery_id)
     if not lottery:
         raise HTTPException(status_code=404, detail="Lottery not found")
+
+    available_nft_count = await get_available_nft_count(lottery.id)
+    total_nft_count = await LotteryPrizes.filter(lottery=lottery).count()
+
+    grand_prizes = []
+    prizes = []
+
+    lottery_prizes = await LotteryPrizes.filter(lottery=lottery).select_related("prize")
+
+    for lp in lottery_prizes:
+        if lp.prize.type == 'grand':
+            grand_prizes.append(lp)
+        else:
+            prizes.append(lp)
 
     full_info = IFullLotteryInfo(
         id=lottery.id,
@@ -321,10 +341,10 @@ async def get_lottery_by_id(
         collection_banner=lottery.collection_banner,
         event_date=int(lottery.event_date.timestamp()),
         total_sum=lottery.total_sum,
-        available_nft_count=0,
-        total_nft_count=0,
-        grand_prizes=[],
-        prizes=[],
+        available_nft_count=available_nft_count,
+        total_nft_count=total_nft_count,
+        grand_prizes=grand_prizes,
+        prizes=prizes,
         winners=[],
         other_lotteries=[]
     )
@@ -332,11 +352,42 @@ async def get_lottery_by_id(
     return IGetLotteryResponse(lottery=full_info)
 
 
+@router.post("/lotteries/", response_model=IUpdateLotteryResponse)
+async def create_lottery(
+        req: IUpdateLotteryRequest,
+        _: User = Depends(get_current_user)
+):
+    await Lottery.create(
+        name=req.name,
+        short_description=req.short_description,
+        banner=req.banner,
+        collection_banner=req.collection_banner,
+        event_date=datetime.fromtimestamp(req.event_date, tz=timezone.utc),
+        total_sum=req.total_sum,
+        ticket_price=req.ticket_price,
+        collection_name=req.collection_name,
+        collection_address=req.collection_address
+    )
+    for pr in req.grand_prizes:
+        prize = await Prize.create(
+            title=pr.title,
+            image=pr.image,
+            description=pr.description,
+            quantity=pr.quantity
+        )
+        await LotteryPrizes.create(
+            lottery_id=req.id,
+            prize_id=prize
+        )
+
+    return IUpdateLotteryResponse(success=True)
+
+
 @router.put("/lotteries/{lottery_id}", response_model=IUpdateLotteryResponse)
 async def update_lottery(
-    lottery_id: int,
-    req: IUpdateLotteryRequest,
-    _: User = Depends(get_current_user)
+        lottery_id: int,
+        req: IUpdateLotteryRequest,
+        _: User = Depends(get_current_user)
 ):
     lottery = await Lottery.get_or_none(id=lottery_id)
     if not lottery:
@@ -358,24 +409,24 @@ async def update_lottery(
 
     return IUpdateLotteryResponse(
         success=True,
-            lottery=IFullLotteryInfo(
-                id=lottery.id,
-                name=lottery.name,
-                short_description=lottery.short_description,
-                banner=lottery.banner,
-                collection_banner=lottery.collection_banner,
-                event_date=int(lottery.event_date.timestamp()),
-                total_sum=lottery.total_sum,
-                ticket_price=float(lottery.ticket_price),
-                available_nft_count=0,
-                total_nft_count=0,
-                grand_prizes=[],
-                prizes=[],
-                winners=[],
-                other_lotteries=[]
-            )
+        lottery=IFullLotteryInfo(
+            id=lottery.id,
+            name=lottery.name,
+            short_description=lottery.short_description,
+            banner=lottery.banner,
+            collection_banner=lottery.collection_banner,
+            event_date=int(lottery.event_date.timestamp()),
+            total_sum=lottery.total_sum,
+            ticket_price=float(lottery.ticket_price),
+            available_nft_count=0,
+            total_nft_count=0,
+            grand_prizes=[],
+            prizes=[],
+            winners=[],
+            other_lotteries=[]
         )
-    
+    )
+
 
 @router.delete("/lotteries/{lottery_id}", response_model=IDeleteLotteryResponse)
 async def delete_lottery(lottery_id: int, _: User = Depends(get_current_user)):
@@ -385,4 +436,3 @@ async def delete_lottery(lottery_id: int, _: User = Depends(get_current_user)):
 
     await lottery.delete()
     return IDeleteLotteryResponse(success=True)
-
