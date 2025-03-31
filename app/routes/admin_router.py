@@ -330,9 +330,9 @@ async def get_lottery_by_id(
 
     for lp in lottery_prizes:
         if lp.prize.type == 'grand':
-            grand_prizes.append(lp)
+            grand_prizes.append(lp.prize)
         else:
-            prizes.append(lp)
+            prizes.append(lp.prize)
 
     full_info = IAdminFullLotteryInfo(
         id=lottery.id,
