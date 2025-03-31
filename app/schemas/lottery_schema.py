@@ -26,6 +26,20 @@ class ILotteryInfo(BaseModel):
     )
 
 
+class IAdminLotteryInfo(BaseModel):
+    id: int
+    title: str
+    event_date: int
+    total_nft_count: int
+    nft_cost: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
 class IPrize(BaseModel):
     title: str
     image: str
@@ -47,6 +61,7 @@ class IFullLotteryInfo(ILotteryInfo):
     grand_prizes: list[IPrize] = []
     prizes: list[IPrize] = []
     winners: list[IShortUser] = []
+    tickets: Optional[str] = None
     other_lotteries: list[ILotteryInfo] = []
 
     model_config = ConfigDict(

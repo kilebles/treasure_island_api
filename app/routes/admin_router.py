@@ -30,7 +30,7 @@ from app.schemas.admin_schema import (
     IUpdateUserResponse, IUploadFileResponse
 )
 from app.schemas.lottery_schema import IFullLotteryInfo, IGetLotteriesHistoryResponse, ILotteryHistoryInfo, \
-    ILotteryInfo, IPageRequest, LiveStatus
+    ILotteryInfo, IPageRequest, LiveStatus, IAdminLotteryInfo
 from app.schemas.users_schema import ILotteryShortInfo, IMyNftToken, IPrizeItem, IShortUser, UserOut, IAdminShortUser
 from app.services.admin_service import get_admin_statistics
 from app.services.file_upload import FileUpload
@@ -253,16 +253,15 @@ async def get_lottery_list(
     total = await query.count()
     total_pages = (total + req.limit - 1) // req.limit
 
-    lotteries = await query.offset((req.page - 1) * req.limit).limit(req.limit)
+    lotteries = await query.offset((req.page - 1) * req.limit).limit(req.limit).prefetch_related("tickets")
 
     lottery_items = [
-        ILotteryInfo(
+        IAdminLotteryInfo(
             id=l.id,
-            name=l.name,
-            short_description=l.short_description,
-            banner=l.banner,
-            collection_banner=l.collection_banner,
-            event_date=int(l.event_date.timestamp())
+            title=l.name,
+            event_date=int(l.event_date.timestamp()),
+            total_nft_count=len(l.tickets),
+            nft_cost=l.ticket_price
         )
         for l in lotteries
     ]
@@ -289,16 +288,15 @@ async def get_lottery_history(
 
     total = await query.count()
     total_pages = (total + limit - 1) // limit
-    lotteries = await query.offset((page - 1) * limit).limit(limit)
+    lotteries = await query.offset((page - 1) * limit).limit(limit).prefetch_related("tickets")
 
-    result: List[ILotteryInfo] = [
-        ILotteryInfo(
+    result: List[IAdminLotteryInfo] = [
+        IAdminLotteryInfo(
             id=l.id,
-            name=l.name,
-            short_description=l.short_description,
-            banner=l.banner,
-            collection_banner=l.collection_banner,
-            event_date=int(l.event_date.timestamp())
+            title=l.name,
+            event_date=int(l.event_date.timestamp()),
+            total_nft_count=len(l.tickets),
+            nft_cost=l.ticket_price
         )
         for l in lotteries
     ]
@@ -439,7 +437,7 @@ async def delete_lottery(lottery_id: int, _: User = Depends(get_current_user)):
 
 
 @router.post("/upload", response_model=IUploadFileResponse)
-async def upload_lottery_banner(file: UploadFile):
+async def upload_lottery_banner(file: UploadFile, _: User = Depends(get_current_user)):
     upload = FileUpload()
     file_url = await upload.upload(file)
     return IUploadFileResponse(file_url=file_url)

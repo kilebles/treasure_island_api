@@ -1,7 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.schemas.lottery_schema import IFullLotteryInfo, ILotteryInfo, LiveStatus, IPrize
+from app.schemas.lottery_schema import IFullLotteryInfo, ILotteryInfo, LiveStatus, IPrize, IAdminLotteryInfo
 from app.schemas.users_schema import (
     ILotteryShortInfo,
     IMyNftToken,
@@ -149,7 +149,7 @@ class IUpdateUserResponse(IStatusResponse):
 class IGetLotteryListResponse(IStatusResponse):
     page: int
     total_pages: int
-    lotteries: List[ILotteryInfo]
+    lotteries: List[IAdminLotteryInfo]
 
     model_config = ConfigDict(
         alias_generator=to_camel,
