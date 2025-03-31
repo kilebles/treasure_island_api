@@ -30,7 +30,7 @@ from app.schemas.admin_schema import (
     IUpdateUserResponse, IUploadFileResponse
 )
 from app.schemas.lottery_schema import IFullLotteryInfo, IGetLotteriesHistoryResponse, ILotteryHistoryInfo, \
-    ILotteryInfo, IPageRequest, LiveStatus, IAdminLotteryInfo, IAdminFullLotteryInfo
+    ILotteryInfo, IPageRequest, LiveStatus, IAdminLotteryInfo, IAdminFullLotteryInfo, IPrize
 from app.schemas.users_schema import ILotteryShortInfo, IMyNftToken, IPrizeItem, IShortUser, UserOut, IAdminShortUser, \
     IAdminLotteryShortInfo
 from app.services.admin_service import get_admin_statistics
@@ -330,9 +330,25 @@ async def get_lottery_by_id(
 
     for lp in lottery_prizes:
         if lp.prize.type == 'grand':
-            grand_prizes.append(lp.prize)
+            grand_prizes.append(
+                IPrize(
+                    title=lp.prize.title,
+                    image=lp.prize.image,
+                    description=lp.prize.description,
+                    quantity=lp.prize.quantity,
+                    winners=[]
+                )
+            )
         else:
-            prizes.append(lp.prize)
+            prizes.append(
+                IPrize(
+                    title=lp.prize.title,
+                    image=lp.prize.image,
+                    description=lp.prize.description,
+                    quantity=lp.prize.quantity,
+                    winners=[]
+                )
+            )
 
     full_info = IAdminFullLotteryInfo(
         id=lottery.id,
@@ -374,6 +390,9 @@ async def create_lottery(
         ticket_price=req.ticket_price,
         collection_name=req.collection_name,
     )
+    prizes = []
+    grand_prizes = []
+
     for pr in req.grand_prizes:
         prize = await Prize.create(
             title=pr.title,
@@ -385,6 +404,15 @@ async def create_lottery(
         await LotteryPrizes.create(
             lottery_id=lottery.id,
             prize_id=prize.id
+        )
+        grand_prizes.append(
+            IPrize(
+                title=pr.title,
+                image=pr.image,
+                description=pr.description,
+                quantity=pr.quantity,
+                winners=[]
+            )
         )
 
     for pr in req.prizes:
@@ -398,6 +426,15 @@ async def create_lottery(
         await LotteryPrizes.create(
             lottery_id=lottery.id,
             prize_id=prize.id
+        )
+        prizes.append(
+            IPrize(
+                title=pr.title,
+                image=pr.image,
+                description=pr.description,
+                quantity=pr.quantity,
+                winners=[]
+            )
         )
 
     return IUpdateLotteryResponse(
@@ -417,8 +454,8 @@ async def create_lottery(
             available_nft_count=0,
             total_nft_count=0,
             grand_prizes=[],
-            prizes=[],
-            winners=[],
+            prizes=prizes,
+            winners=grand_prizes,
             other_lotteries=[]
         )
     )
@@ -449,6 +486,50 @@ async def update_lottery(
     await lottery.save()
 
     # TODO: LotteryPrizes relations
+    grand_prizes = []
+    prizes = []
+
+    await Prize.filter(lottery=lottery).delete()
+
+    for pr in req.grand_prizes:
+        prize = await Prize.get_or_none(id=pr.id)
+        if not prize:
+            raise HTTPException(status_code=404, detail="Prize not found")
+        prize.title = pr.title
+        prize.image = pr.image
+        prize.description = pr.description
+        prize.quantity = pr.quantity
+        await prize.save()
+
+        grand_prizes.append(
+            IPrize(
+                title=pr.title,
+                image=pr.image,
+                description=pr.description,
+                quantity=pr.quantity,
+                winners=[]
+            )
+        )
+
+    for pr in req.prizes:
+        prize = await Prize.get_or_none(id=pr.id)
+        if not prize:
+            raise HTTPException(status_code=404, detail="Prize not found")
+        prize.title = pr.title
+        prize.image = pr.image
+        prize.description = pr.description
+        prize.quantity = pr.quantity
+        await prize.save()
+
+        prizes.append(
+            IPrize(
+                title=pr.title,
+                image=pr.image,
+                description=pr.description,
+                quantity=pr.quantity,
+                winners=[]
+            )
+        )
 
     return IUpdateLotteryResponse(
         success=True,
@@ -466,8 +547,8 @@ async def update_lottery(
             ticket_price=float(lottery.ticket_price),
             available_nft_count=0,
             total_nft_count=0,
-            grand_prizes=[],
-            prizes=[],
+            grand_prizes=grand_prizes,
+            prizes=prizes,
             winners=[],
             other_lotteries=[]
         )
