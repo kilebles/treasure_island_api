@@ -81,6 +81,7 @@ class IAdminFullLotteryInfo(ILotteryInfo):
     grand_prizes: list[IPrize] = []
     prizes: list[IPrize] = []
     winners: list[IShortUser] = []
+    ticket_price: int
     tickets: Optional[str] = None
     other_lotteries: list[ILotteryInfo] = []
 

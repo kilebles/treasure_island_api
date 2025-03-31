@@ -344,6 +344,7 @@ async def get_lottery_by_id(
         collection_banner=lottery.collection_banner,
         collection_name=lottery.collection_name,
         event_date=int(lottery.event_date.timestamp()),
+        ticket_price=lottery.ticket_price,
         total_sum=lottery.total_sum,
         available_nft_count=available_nft_count,
         total_nft_count=total_nft_count,
@@ -451,7 +452,7 @@ async def update_lottery(
 
     return IUpdateLotteryResponse(
         success=True,
-        lottery=IFullLotteryInfo(
+        lottery=IAdminFullLotteryInfo(
             id=lottery.id,
             name=lottery.name,
             short_description=lottery.short_description,
