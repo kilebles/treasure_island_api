@@ -367,7 +367,6 @@ async def create_lottery(
         total_sum=req.total_sum,
         ticket_price=req.ticket_price,
         collection_name=req.collection_name,
-        collection_address=req.collection_address
     )
     for pr in req.grand_prizes:
         prize = await Prize.create(
@@ -440,7 +439,7 @@ async def delete_lottery(lottery_id: int, _: User = Depends(get_current_user)):
 
 
 @router.post("/upload", response_model=IUploadFileResponse)
-async def upload_lottery_banner(file: UploadFile, _: User = Depends(get_current_user)):
+async def upload_lottery_banner(file: UploadFile):
     upload = FileUpload()
     file_url = await upload.upload(file)
     return IUploadFileResponse(file_url=file_url)
