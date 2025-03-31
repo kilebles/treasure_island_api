@@ -1,12 +1,15 @@
 from datetime import datetime, timezone
 
-from app.database.models import User, Lottery, Ticket
+from app.database.models import User, Lottery, Ticket, Option
 from app.schemas.admin_schema import IStat, IStatResponse, ILotteryShortInfo, LiveStatus
 from app.schemas.users_schema import IAdminLotteryShortInfo
 
 
-def get_live_status():
-    # TODO: livelink logic
+async def get_live_status():
+    option = await Option.get(key="liveStatus")
+    if option.value == "1":
+        return LiveStatus.ONLINE
+
     return LiveStatus.OFFLINE
 
 
@@ -50,8 +53,10 @@ async def get_admin_statistics() -> IStatResponse:
         active_lottery_tickets_earn=active_earn,
     )
 
+    live_status = await get_live_status()
+
     return IStatResponse(
         active_lottery=active_lottery_info,
-        live_status=get_live_status(),
+        live_status=live_status,
         stat=stat,
     )

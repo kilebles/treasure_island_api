@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Upload
 from httpx import request
 
 from app.auth.dependencies import get_current_user
-from app.database.models import Prize
+from app.database.models import Prize, Option
 from app.database.models.lottery import Lottery
 from app.database.models.lottery_prizes import LotteryPrizes
 from app.database.models.ticket import Ticket
@@ -112,10 +112,15 @@ async def change_live_status(req: IChangeStatusLiveRequest, user=Depends(get_cur
     if not active:
         raise HTTPException(status_code=404, detail="Active lottery not found")
 
+    option = await Option.get(key='liveStatus')
     if req.live_link:
         # TODO: Link transfer logic
+        option.value = "1"
+        await option.save()
         return IChangeStatusLiveResponse(live_status=LiveStatus.ONLINE)
 
+    option.value = "0"
+    await option.save()
     return IChangeStatusLiveResponse(live_status=LiveStatus.OFFLINE)
 
 

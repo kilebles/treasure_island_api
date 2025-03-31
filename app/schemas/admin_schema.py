@@ -76,7 +76,7 @@ class ISetActiveLotteryResponse(BaseModel):
     
 
 class IChangeStatusLiveRequest(BaseModel):
-    live_link: str
+    live_link: Optional[str] = None
 
     model_config = ConfigDict(
         from_attributes=True,
