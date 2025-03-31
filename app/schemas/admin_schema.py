@@ -7,7 +7,7 @@ from app.schemas.users_schema import (
     IMyNftToken,
     IPrizeItem,
     IShortUser,
-    UserOut, IAdminShortUser
+    UserOut, IAdminShortUser, IAdminLotteryShortInfo
 )
 
 
@@ -65,7 +65,7 @@ class IGetShortLotteriesResponse(IStatusResponse):
     
 class ISetActiveLotteryResponse(BaseModel):
     success: bool = True
-    active_lottery: ILotteryShortInfo
+    active_lottery: IAdminLotteryShortInfo
 
     model_config = ConfigDict(
         from_attributes=True,
