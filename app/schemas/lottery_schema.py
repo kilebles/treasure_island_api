@@ -71,6 +71,25 @@ class IFullLotteryInfo(ILotteryInfo):
     )
 
 
+class IAdminFullLotteryInfo(ILotteryInfo):
+    total_sum: int
+    available_nft_count: int
+    total_nft_count: int
+    header_banner: str
+    main_banner: str
+    grand_prizes: list[IPrize] = []
+    prizes: list[IPrize] = []
+    winners: list[IShortUser] = []
+    tickets: Optional[str] = None
+    other_lotteries: list[ILotteryInfo] = []
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
 class IGetLotteriesResponse(BaseModel):
     success: bool = True
     active_lottery: IFullLotteryInfo
@@ -171,9 +190,8 @@ class WinnerItem(BaseModel):
     prize_id: int
     title: str
     user_id: int
-    
+
 
 class WinnerUpdate(BaseModel):
     type: str = "winner_update"
     winners: List[WinnerItem]
-    

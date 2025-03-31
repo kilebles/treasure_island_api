@@ -30,7 +30,7 @@ from app.schemas.admin_schema import (
     IUpdateUserResponse, IUploadFileResponse
 )
 from app.schemas.lottery_schema import IFullLotteryInfo, IGetLotteriesHistoryResponse, ILotteryHistoryInfo, \
-    ILotteryInfo, IPageRequest, LiveStatus, IAdminLotteryInfo
+    ILotteryInfo, IPageRequest, LiveStatus, IAdminLotteryInfo, IAdminFullLotteryInfo
 from app.schemas.users_schema import ILotteryShortInfo, IMyNftToken, IPrizeItem, IShortUser, UserOut, IAdminShortUser, \
     IAdminLotteryShortInfo
 from app.services.admin_service import get_admin_statistics
@@ -334,11 +334,13 @@ async def get_lottery_by_id(
         else:
             prizes.append(lp)
 
-    full_info = IFullLotteryInfo(
+    full_info = IAdminFullLotteryInfo(
         id=lottery.id,
         name=lottery.name,
         short_description=lottery.short_description,
         banner=lottery.banner,
+        header_banner=lottery.header_banner,
+        main_banner=lottery.main_banner,
         collection_banner=lottery.collection_banner,
         event_date=int(lottery.event_date.timestamp()),
         total_sum=lottery.total_sum,
@@ -362,6 +364,8 @@ async def create_lottery(
         name=req.name,
         short_description=req.short_description,
         banner=req.banner,
+        header_banner=req.header_banner,
+        main_banner=req.main_banner,
         collection_banner=req.collection_banner,
         event_date=datetime.fromtimestamp(req.event_date, tz=timezone.utc),
         total_sum=req.total_sum,
@@ -396,11 +400,13 @@ async def create_lottery(
 
     return IUpdateLotteryResponse(
         success=True,
-        lottery=IFullLotteryInfo(
+        lottery=IAdminFullLotteryInfo(
             id=lottery.id,
             name=lottery.name,
             short_description=lottery.short_description,
             banner=lottery.banner,
+            header_banner=lottery.header_banner,
+            main_banner=lottery.main_banner,
             collection_banner=lottery.collection_banner,
             event_date=int(lottery.event_date.timestamp()),
             total_sum=lottery.total_sum,
@@ -428,6 +434,8 @@ async def update_lottery(
     lottery.name = req.name
     lottery.short_description = req.short_description
     lottery.banner = req.banner
+    lottery.header_banner = req.header_banner
+    lottery.main_banner = req.main_banner
     lottery.collection_banner = req.collection_banner
     lottery.event_date = datetime.fromtimestamp(req.event_date, tz=timezone.utc)
     lottery.total_sum = req.total_sum
@@ -445,6 +453,8 @@ async def update_lottery(
             name=lottery.name,
             short_description=lottery.short_description,
             banner=lottery.banner,
+            header_banner=lottery.header_banner,
+            main_banner=lottery.main_banner,
             collection_banner=lottery.collection_banner,
             event_date=int(lottery.event_date.timestamp()),
             total_sum=lottery.total_sum,
