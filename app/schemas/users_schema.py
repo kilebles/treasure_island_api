@@ -123,6 +123,20 @@ class ILotteryShortInfo(BaseModel):
     )
 
 
+class IAdminLotteryShortInfo(BaseModel):
+    id: int
+    name: str
+    banner: str
+    event_date: int
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        alias_generator=to_camel,
+        populate_by_name=True
+    )
+
+
+
 class IUserTokens(BaseModel):
     lottery: ILotteryShortInfo
     nfts: List[IMyNftToken]

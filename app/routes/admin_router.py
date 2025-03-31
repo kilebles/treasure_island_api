@@ -31,7 +31,8 @@ from app.schemas.admin_schema import (
 )
 from app.schemas.lottery_schema import IFullLotteryInfo, IGetLotteriesHistoryResponse, ILotteryHistoryInfo, \
     ILotteryInfo, IPageRequest, LiveStatus, IAdminLotteryInfo
-from app.schemas.users_schema import ILotteryShortInfo, IMyNftToken, IPrizeItem, IShortUser, UserOut, IAdminShortUser
+from app.schemas.users_schema import ILotteryShortInfo, IMyNftToken, IPrizeItem, IShortUser, UserOut, IAdminShortUser, \
+    IAdminLotteryShortInfo
 from app.services.admin_service import get_admin_statistics
 from app.services.file_upload import FileUpload
 from app.services.lottery_service import get_available_nft_count
@@ -96,10 +97,11 @@ async def set_active_lottery(
     await lottery.save()
 
     return ISetActiveLotteryResponse(
-        active_lottery=ILotteryShortInfo(
+        active_lottery=IAdminLotteryShortInfo(
             id=lottery.id,
             name=lottery.name,
-            event_date=int(lottery.event_date.timestamp())
+            event_date=int(lottery.event_date.timestamp()),
+            banner=lottery.banner
         )
     )
 
