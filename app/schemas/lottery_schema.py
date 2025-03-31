@@ -77,6 +77,7 @@ class IAdminFullLotteryInfo(ILotteryInfo):
     total_nft_count: int
     header_banner: str
     main_banner: str
+    collection_name: str
     grand_prizes: list[IPrize] = []
     prizes: list[IPrize] = []
     winners: list[IShortUser] = []

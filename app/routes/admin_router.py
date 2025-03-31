@@ -342,6 +342,7 @@ async def get_lottery_by_id(
         header_banner=lottery.header_banner,
         main_banner=lottery.main_banner,
         collection_banner=lottery.collection_banner,
+        collection_name=lottery.collection_name,
         event_date=int(lottery.event_date.timestamp()),
         total_sum=lottery.total_sum,
         available_nft_count=available_nft_count,
@@ -408,6 +409,7 @@ async def create_lottery(
             header_banner=lottery.header_banner,
             main_banner=lottery.main_banner,
             collection_banner=lottery.collection_banner,
+            collection_name=lottery.collection_name,
             event_date=int(lottery.event_date.timestamp()),
             total_sum=lottery.total_sum,
             ticket_price=float(lottery.ticket_price),
@@ -437,6 +439,7 @@ async def update_lottery(
     lottery.header_banner = req.header_banner
     lottery.main_banner = req.main_banner
     lottery.collection_banner = req.collection_banner
+    lottery.collection_name = req.collection_name
     lottery.event_date = datetime.fromtimestamp(req.event_date, tz=timezone.utc)
     lottery.total_sum = req.total_sum
     lottery.ticket_price = req.ticket_price
@@ -456,6 +459,7 @@ async def update_lottery(
             header_banner=lottery.header_banner,
             main_banner=lottery.main_banner,
             collection_banner=lottery.collection_banner,
+            collection_name=lottery.collection_name,
             event_date=int(lottery.event_date.timestamp()),
             total_sum=lottery.total_sum,
             ticket_price=float(lottery.ticket_price),
