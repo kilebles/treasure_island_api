@@ -375,8 +375,8 @@ async def create_lottery(
             quantity=pr.quantity
         )
         await LotteryPrizes.create(
-            lottery_id=req.id,
-            prize_id=prize
+            lottery_id=lottery.id,
+            prize_id=prize.id
         )
 
     for pr in req.prizes:
@@ -388,8 +388,8 @@ async def create_lottery(
             quantity=pr.quantity
         )
         await LotteryPrizes.create(
-            lottery_id=req.id,
-            prize_id=prize
+            lottery_id=lottery.id,
+            prize_id=prize.id
         )
 
     return IUpdateLotteryResponse(
