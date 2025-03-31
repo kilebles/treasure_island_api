@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
-from typing import List
-from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query
+from typing import List, Optional
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, UploadFile
 from httpx import request
 
 from app.auth.dependencies import get_current_user
@@ -27,12 +27,13 @@ from app.schemas.admin_schema import (
     IUpdateLotteryRequest,
     IUpdateLotteryResponse,
     IUpdateUserRequest,
-    IUpdateUserResponse
+    IUpdateUserResponse, IUploadFileResponse
 )
 from app.schemas.lottery_schema import IFullLotteryInfo, IGetLotteriesHistoryResponse, ILotteryHistoryInfo, \
     ILotteryInfo, IPageRequest, LiveStatus
 from app.schemas.users_schema import ILotteryShortInfo, IMyNftToken, IPrizeItem, IShortUser, UserOut, IAdminShortUser
 from app.services.admin_service import get_admin_statistics
+from app.services.file_upload import FileUpload
 from app.services.lottery_service import get_available_nft_count
 from app.services.users_service import login_by_init_data
 
@@ -277,7 +278,7 @@ async def get_lottery_list(
 async def get_lottery_history(
         page: int = Query(1, ge=1),
         limit: int = Query(10, ge=1),
-        q: str | None = Query(None),
+        q: Optional[str] = Query(None),
         user: User = Depends(get_current_user)
 ):
     now = datetime.now(timezone.utc)
@@ -436,3 +437,10 @@ async def delete_lottery(lottery_id: int, _: User = Depends(get_current_user)):
 
     await lottery.delete()
     return IDeleteLotteryResponse(success=True)
+
+
+@router.post("/upload", response_model=IUploadFileResponse)
+async def upload_lottery_banner(file: UploadFile, _: User = Depends(get_current_user)):
+    upload = FileUpload()
+    file_url = await upload.upload(file)
+    return IUploadFileResponse(file_url=file_url)

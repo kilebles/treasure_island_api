@@ -197,3 +197,5 @@ class IDeleteLotteryResponse(IStatusResponse):
     pass
 
 
+class IUploadFileResponse(IStatusResponse):
+    file_url: str
