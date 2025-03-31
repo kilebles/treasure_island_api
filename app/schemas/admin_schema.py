@@ -48,7 +48,7 @@ class IStat(BaseModel):
 
 class IStatResponse(BaseModel):
     success: bool = True
-    active_lottery: Optional[ILotteryShortInfo] = None
+    active_lottery: Optional[IAdminLotteryShortInfo] = None
     live_status: LiveStatus
     stat: IStat
 

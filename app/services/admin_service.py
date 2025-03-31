@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 
 from app.database.models import User, Lottery, Ticket
 from app.schemas.admin_schema import IStat, IStatResponse, ILotteryShortInfo, LiveStatus
+from app.schemas.users_schema import IAdminLotteryShortInfo
+
 
 def get_live_status():
     # TODO: livelink logic
@@ -26,10 +28,11 @@ async def get_admin_statistics() -> IStatResponse:
         active_lottery_users = await Ticket.filter(lottery=active_lottery).exclude(owner=None).distinct().values_list("owner_id", flat=True)
         active_earn = active_lottery.ticket_price * active_lottery_sold
 
-        active_lottery_info = ILotteryShortInfo(
+        active_lottery_info = IAdminLotteryShortInfo(
             id=active_lottery.id,
             name=active_lottery.name,
-            event_date=int(active_lottery.event_date.timestamp())
+            event_date=int(active_lottery.event_date.timestamp()),
+            banner=active_lottery.banner
         )
     else:
         active_lottery_info = None
