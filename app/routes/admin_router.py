@@ -399,7 +399,6 @@ async def update_lottery(
     lottery.total_sum = req.total_sum
     lottery.ticket_price = req.ticket_price
     lottery.collection_name = req.collection_name
-    lottery.collection_address = req.collection_address
 
     await lottery.save()
 

@@ -11,7 +11,7 @@ class Lottery(Model):
     event_date = fields.DatetimeField()
     is_active = fields.BooleanField(default=False)
     collection_name = fields.CharField(max_length=255)
-    collection_address = fields.CharField(max_length=255)
+    collection_address = fields.CharField(max_length=255, null=True)
     collection_banner = fields.CharField(max_length=255)
     ticket_template = fields.TextField(null=True)
     ticket_price = fields.DecimalField(max_digits=10, decimal_places=2)

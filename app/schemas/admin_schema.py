@@ -177,7 +177,6 @@ class IUpdateLotteryRequest(BaseModel):
     total_sum: int
     ticket_price: float
     collection_name: str
-    collection_address: str
     main_banner: str
     header_banner: str
     grand_prizes: List[IPrize]
