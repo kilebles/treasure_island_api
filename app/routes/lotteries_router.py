@@ -149,7 +149,7 @@ async def get_lottery_by_id(
         id=lottery.id,
         name=lottery.name,
         short_description=lottery.short_description,
-        banner=lottery.banner,
+        banner=lottery.main_banner,
         collection_banner=lottery.collection_banner,
         event_date=int(lottery.event_date.timestamp()),
         total_sum=lottery.total_sum,
