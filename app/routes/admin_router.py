@@ -369,6 +369,20 @@ async def create_lottery(
     for pr in req.grand_prizes:
         prize = await Prize.create(
             title=pr.title,
+            type='grand',
+            image=pr.image,
+            description=pr.description,
+            quantity=pr.quantity
+        )
+        await LotteryPrizes.create(
+            lottery_id=req.id,
+            prize_id=prize
+        )
+
+    for pr in req.prizes:
+        prize = await Prize.create(
+            title=pr.title,
+            type='common',
             image=pr.image,
             description=pr.description,
             quantity=pr.quantity
