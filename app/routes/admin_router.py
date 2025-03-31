@@ -395,6 +395,7 @@ async def create_lottery(
     return IUpdateLotteryResponse(
         success=True,
         lottery=IFullLotteryInfo(
+            id=lottery.id,
             name=lottery.name,
             short_description=lottery.short_description,
             banner=lottery.banner,
@@ -438,6 +439,7 @@ async def update_lottery(
     return IUpdateLotteryResponse(
         success=True,
         lottery=IFullLotteryInfo(
+            id=lottery.id,
             name=lottery.name,
             short_description=lottery.short_description,
             banner=lottery.banner,
