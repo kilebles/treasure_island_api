@@ -356,7 +356,7 @@ async def create_lottery(
         req: IUpdateLotteryRequest,
         _: User = Depends(get_current_user)
 ):
-    await Lottery.create(
+    lottery = await Lottery.create(
         name=req.name,
         short_description=req.short_description,
         banner=req.banner,
@@ -392,7 +392,25 @@ async def create_lottery(
             prize_id=prize
         )
 
-    return IUpdateLotteryResponse(success=True)
+    return IUpdateLotteryResponse(
+        success=True,
+        lottery=IFullLotteryInfo(
+            id=lottery.id,
+            name=lottery.name,
+            short_description=lottery.short_description,
+            banner=lottery.banner,
+            collection_banner=lottery.collection_banner,
+            event_date=int(lottery.event_date.timestamp()),
+            total_sum=lottery.total_sum,
+            ticket_price=float(lottery.ticket_price),
+            available_nft_count=0,
+            total_nft_count=0,
+            grand_prizes=[],
+            prizes=[],
+            winners=[],
+            other_lotteries=[]
+        )
+    )
 
 
 @router.put("/lotteries/{lottery_id}", response_model=IUpdateLotteryResponse)
