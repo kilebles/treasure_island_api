@@ -182,6 +182,7 @@ class IUpdateLotteryRequest(BaseModel):
     header_banner: str
     grand_prizes: List[IPrize]
     prizes: List[IPrize]
+    tickets: Optional[str] = None
 
     model_config = ConfigDict(
         alias_generator=to_camel,
