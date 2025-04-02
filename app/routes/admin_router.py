@@ -494,7 +494,7 @@ async def update_lottery(
     grand_prizes = []
     prizes = []
 
-    await Prize.filter(lottery=lottery).delete()
+    await Prize.filter(lottery_prizes__lottery=lottery).delete()
 
     for pr in req.grand_prizes:
         prize = await Prize.get_or_none(id=pr.id)
