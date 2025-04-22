@@ -23,7 +23,7 @@ class FileUpload:
             allow_extensions: Optional[List[str]] = None,
             max_size: int = 1024 ** 3,
             filename_generator: Optional[Callable] = None,
-            prefix: str = 'https://island.impulsrent.ru/api/uploads/',
+            prefix: str = f'{config.APP_URL}/api/uploads/',
     ):
         self.max_size = max_size
         self.allow_extensions = allow_extensions
