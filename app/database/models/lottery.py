@@ -6,8 +6,6 @@ class Lottery(Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255)
     banner = fields.CharField(max_length=255)
-    header_banner = fields.CharField(max_length=255, null=True)
-    main_banner = fields.CharField(max_length=255, null=True)
     short_description = fields.CharField(max_length=255)
     total_sum = fields.IntField()
     event_date = fields.DatetimeField()

@@ -13,7 +13,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if not os.path.exists(os.path.join(BASE_DIR, 'static')):
     os.mkdir(os.path.join(BASE_DIR, 'static'))
 
-app = FastAPI(title="Treasure Island API")
+app = FastAPI(title="Treasure Island API", root_path="/api")
 
 app.add_middleware(
     CORSMiddleware,

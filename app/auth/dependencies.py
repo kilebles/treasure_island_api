@@ -6,6 +6,7 @@ from app.database.models import User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+
 async def get_current_user(request: Request, token: str = Depends(oauth2_scheme)) -> User:
     token = request.query_params.get("token") or token
     credentials_exception = HTTPException(

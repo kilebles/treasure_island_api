@@ -16,8 +16,7 @@ class ILotteryInfo(BaseModel):
     name: str
     short_description: str
     banner: str
-    collection_banner: str
-    event_date: int
+    event_date: str
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -57,12 +56,11 @@ class IPrize(BaseModel):
 class IFullLotteryInfo(ILotteryInfo):
     total_sum: int
     available_nft_count: int
+    remaining_seconds: int
     total_nft_count: int
     grand_prizes: list[IPrize] = []
     prizes: list[IPrize] = []
     winners: list[IShortUser] = []
-    tickets: Optional[str] = None
-    other_lotteries: list[ILotteryInfo] = []
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -92,10 +90,9 @@ class IAdminFullLotteryInfo(ILotteryInfo):
     )
 
 
-class IGetLotteriesResponse(BaseModel):
+class IGetLotteryResponse(BaseModel):
     success: bool = True
-    active_lottery: IFullLotteryInfo
-    future_lotteries: list[ILotteryInfo]
+    lottery: IFullLotteryInfo
 
     model_config = ConfigDict(
         from_attributes=True,
@@ -113,6 +110,8 @@ class IPageRequest(BaseModel):
 class ILotteryHistoryInfo(BaseModel):
     id: int
     name: str
+    description: str
+    banner: str
     event_date: int
     total_nft_count: int
     ticket_price: float
